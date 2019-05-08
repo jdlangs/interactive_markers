@@ -37,8 +37,8 @@
 #ifndef SINGLE_CLIENT_H_
 #define SINGLE_CLIENT_H_
 
-#include <visualization_msgs/InteractiveMarkerInit.h>
-#include <visualization_msgs/InteractiveMarkerUpdate.h>
+#include <visualization_msgs/msg/interactive_marker_init.hpp>
+#include <visualization_msgs/msg/interactive_marker_update.hpp>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread/thread.hpp>
@@ -47,7 +47,7 @@
 #include <boost/function.hpp>
 #include <boost/unordered_map.hpp>
 
-#include <tf/tf.h>
+//#include <tf/tf.h>
 
 #include <deque>
 

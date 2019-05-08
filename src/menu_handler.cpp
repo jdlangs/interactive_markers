@@ -31,9 +31,6 @@
 
 #include "interactive_markers/menu_handler.h"
 
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
-
 namespace interactive_markers
 {
 

@@ -32,9 +32,6 @@
 #include "interactive_markers/interactive_marker_client.h"
 #include "interactive_markers/detail/single_client.h"
 
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
-
 //#define DBG_MSG( ... ) ROS_DEBUG_NAMED( "interactive_markers", __VA_ARGS__ );
 #define DBG_MSG( ... ) ROS_DEBUG( __VA_ARGS__ );
 //#define DBG_MSG( ... ) printf("   "); printf( __VA_ARGS__ ); printf("\n");

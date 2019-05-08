@@ -32,20 +32,20 @@
 #ifndef INTERACTIVE_MARKER_CLIENT
 #define INTERACTIVE_MARKER_CLIENT
 
-#include <boost/shared_ptr.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/function.hpp>
-#include <boost/unordered_map.hpp>
-
+#include <mutex>
+#include <functional>
+#include <unordered_map>
 #include <string>
 
-#include <ros/subscriber.h>
-#include <ros/node_handle.h>
+#include <boost/noncopyable.hpp>
 
-#include <tf/tf.h>
+//#include <ros/subscriber.h>
+//#include <ros/node_handle.h>
 
-#include <visualization_msgs/InteractiveMarkerInit.h>
-#include <visualization_msgs/InteractiveMarkerUpdate.h>
+//#include <tf/tf.h>
+
+#include <visualization_msgs/msg/interactive_marker_init.hpp>
+#include <visualization_msgs/msg/interactive_marker_update.hpp>
 
 #include "detail/state_machine.h"
 
@@ -74,13 +74,13 @@ public:
     ERROR = 2
   };
 
-  typedef visualization_msgs::InteractiveMarkerUpdateConstPtr UpdateConstPtr;
-  typedef visualization_msgs::InteractiveMarkerInitConstPtr InitConstPtr;
+  typedef visualization_msgs::InteractiveMarkerUpdate::ConstSharedPtr UpdateConstPtr;
+  typedef visualization_msgs::InteractiveMarkerInit::ConstSharedPtr InitConstPtr;
 
-  typedef boost::function< void ( const UpdateConstPtr& ) > UpdateCallback;
-  typedef boost::function< void ( const InitConstPtr& ) > InitCallback;
-  typedef boost::function< void ( const std::string& ) > ResetCallback;
-  typedef boost::function< void ( StatusT, const std::string&, const std::string& ) > StatusCallback;
+  typedef std::function< void ( const UpdateConstPtr& ) > UpdateCallback;
+  typedef std::function< void ( const InitConstPtr& ) > InitCallback;
+  typedef std::function< void ( const std::string& ) > ResetCallback;
+  typedef std::function< void ( StatusT, const std::string&, const std::string& ) > StatusCallback;
 
   /// @param tf           The tf transformer to use.
   /// @param target_frame tf frame to transform timestamped messages into.
@@ -148,10 +148,10 @@ private:
 
   void statusCb( StatusT status, const std::string& server_id, const std::string& msg );
 
-  typedef boost::shared_ptr<SingleClient> SingleClientPtr;
-  typedef boost::unordered_map<std::string, SingleClientPtr> M_SingleClient;
+  typedef std::shared_ptr<SingleClient> SingleClientPtr;
+  typedef std::unordered_map<std::string, SingleClientPtr> M_SingleClient;
   M_SingleClient publisher_contexts_;
-  boost::mutex publisher_contexts_mutex_;
+  std::mutex publisher_contexts_mutex_;
 
   tf::Transformer& tf_;
   std::string target_frame_;

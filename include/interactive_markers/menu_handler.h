@@ -32,7 +32,7 @@
 #ifndef INTERACTIVE_MARKER_MENU_HANDLER
 #define INTERACTIVE_MARKER_MENU_HANDLER
 
-#include <visualization_msgs/MenuEntry.h>
+#include <visualization_msgs/msg/menu_entry.hpp>
 #include <interactive_markers/interactive_marker_server.h>
 
 #include <boost/function.hpp>

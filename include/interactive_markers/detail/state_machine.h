@@ -38,7 +38,9 @@
 #ifndef INTERACTIVE_MARKERS_STATE_MACHINE_H_
 #define INTERACTIVE_MARKERS_STATE_MACHINE_H_
 
-#include <ros/ros.h>
+#include <rclcpp/node.hpp>
+#include <rclcpp/duration.hpp>
+#include <rclcpp/time.hpp>
 
 namespace interactive_markers
 {
@@ -48,20 +50,22 @@ template<class StateT>
 class StateMachine
 {
 public:
-  StateMachine( std::string name, StateT init_state );
+  StateMachine( std::shared_ptr<rclcpp::Node> node, std::string name, StateT init_state );
   StateMachine& operator=( StateT state );
   operator StateT();
-  ros::Duration getDuration();
+  rclcpp::Duration getDuration();
 private:
   StateT state_;
-  ros::Time chg_time_;
+  rclcpp::Time chg_time_;
   std::string name_;
+  std::shared_ptr<rclcpp::Node> node_;
 };
 
 template<class StateT>
-StateMachine<StateT>::StateMachine( std::string name, StateT init_state )
-: state_(init_state)
-, chg_time_(ros::Time::now())
+StateMachine<StateT>::StateMachine( std::shared_ptr<rclcpp::Node> node, std::string name, StateT init_state )
+: node_(node)
+, state_(init_state)
+, chg_time_(node_->now())
 , name_(name)
 {
 };
@@ -71,17 +75,17 @@ StateMachine<StateT>& StateMachine<StateT>::operator=( StateT state )
 {
   if ( state_ != state )
   {
-    ROS_DEBUG( "Setting state of %s to %lu", name_.c_str(), (int64_t)state );
+    RCLCPP_DEBUG(rclcpp::get_logger("interactive_markers.state_machine"), "Setting state of %s to %lu", name_.c_str(), (int64_t)state );
     state_ = state;
-    chg_time_=ros::Time::now();
+    chg_time_ = node_->now();
   }
   return *this;
 }
 
 template<class StateT>
-ros::Duration StateMachine<StateT>::getDuration()
+rclcpp::Duration StateMachine<StateT>::getDuration()
 {
-  return ros::Time::now()-chg_time_;
+  return node_->now() - chg_time_;
 }
 
 template<class StateT>

@@ -32,8 +32,6 @@
 #include "interactive_markers/detail/message_context.h"
 #include "interactive_markers/tools.h"
 
-#include <boost/make_shared.hpp>
-
 #define DBG_MSG( ... ) ROS_DEBUG( __VA_ARGS__ );
 //#define DBG_MSG( ... ) printf("   "); printf( __VA_ARGS__ ); printf("\n");
 

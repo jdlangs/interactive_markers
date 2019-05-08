@@ -31,10 +31,7 @@
 
 #include "interactive_markers/interactive_marker_server.h"
 
-#include <visualization_msgs/InteractiveMarkerInit.h>
-
-#include <boost/bind.hpp>
-#include <boost/make_shared.hpp>
+#include <visualization_msgs/msg/interactive_marker_init.h>
 
 namespace interactive_markers
 {
