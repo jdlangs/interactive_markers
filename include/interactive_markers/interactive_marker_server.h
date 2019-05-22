@@ -58,8 +58,8 @@ class InteractiveMarkerServer : boost::noncopyable
 {
 public:
 
-  typedef visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr FeedbackConstPtr;
-  typedef std::function< void ( const FeedbackConstPtr& ) > FeedbackCallback;
+  using FeedbackConstPtr = visualization_msgs::msg::InteractiveMarkerFeedback::ConstSharedPtr;
+  using FeedbackCallback = std::function< void ( const FeedbackConstPtr& ) >;
 
   static const uint8_t DEFAULT_FEEDBACK_CB = 255;
 
@@ -160,7 +160,7 @@ private:
     visualization_msgs::msg::InteractiveMarker int_marker;
   };
 
-  typedef std::unordered_map< std::string, MarkerContext > M_MarkerContext;
+  using M_MarkerContext = std::unordered_map< std::string, MarkerContext >;
 
   // represents an update to a single marker
   struct UpdateContext
@@ -175,7 +175,7 @@ private:
     std::unordered_map<uint8_t,FeedbackCallback> feedback_cbs;
   };
 
-  typedef std::unordered_map< std::string, UpdateContext > M_UpdateContext;
+  using M_UpdateContext = std::unordered_map< std::string, UpdateContext >;
 
   // main loop when spinning our own thread
   // - process callbacks in our callback queue
@@ -183,7 +183,7 @@ private:
   void spinThread();
 
   // update marker pose & call user callback
-  void processFeedback( const FeedbackConstPtr& feedback );
+  void processFeedback( FeedbackConstPtr feedback );
 
   // send an empty update to keep the client GUIs happy
   void keepAlive();
@@ -209,11 +209,12 @@ private:
   // topic namespace to use
   std::string topic_ns_;
 
-  mutable std::recursive_mutex mutex_;
+
+  std::shared_ptr<rclcpp::Node> node_;
 
   // these are needed when spinning up a dedicated thread
   std::unique_ptr<std::thread> spin_thread_;
-  std::shared_ptr<rclcpp::Node> node_;
+  mutable std::recursive_mutex mutex_;
   //ros::CallbackQueue callback_queue_;
   volatile bool need_to_terminate_;
 

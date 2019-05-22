@@ -40,6 +40,7 @@
 #include <visualization_msgs/msg/interactive_marker_init.hpp>
 #include <visualization_msgs/msg/interactive_marker_update.hpp>
 
+#include <rclcpp/node.hpp>
 #include <tf2/exceptions.h>
 #include <tf2_ros/buffer.h>
 
@@ -50,7 +51,9 @@ template<class MsgT>
 class MessageContext
 {
 public:
-  MessageContext( tf2_ros::Buffer& tf,
+  MessageContext(
+      std::shared_ptr<rclcpp::Node>,
+      tf2_ros::Buffer& tf,
       const std::string& target_frame,
       const typename MsgT::ConstPtr& msg,
       bool enable_autocomplete_transparency = true);
@@ -73,6 +76,8 @@ private:
 
   void getTfTransforms( std::vector<visualization_msgs::msg::InteractiveMarker>& msg_vec, std::list<size_t>& indices );
   void getTfTransforms( std::vector<visualization_msgs::msg::InteractiveMarkerPose>& msg_vec, std::list<size_t>& indices );
+
+  std::shared_ptr<rclcpp::Node> node_;
 
   // array indices of marker/pose updates with missing tf info
   std::list<size_t> open_marker_idx_;

@@ -39,10 +39,14 @@
 
 #include <boost/noncopyable.hpp>
 
+#include <rclcpp/node.hpp>
+#include <rclcpp/subscription.hpp>
+
 //#include <ros/subscriber.h>
 //#include <ros/node_handle.h>
 
 //#include <tf/tf.h>
+#include <tf2_ros/buffer.h>
 
 #include <visualization_msgs/msg/interactive_marker_init.hpp>
 #include <visualization_msgs/msg/interactive_marker_update.hpp>
@@ -74,18 +78,18 @@ public:
     ERROR = 2
   };
 
-  typedef visualization_msgs::InteractiveMarkerUpdate::ConstSharedPtr UpdateConstPtr;
-  typedef visualization_msgs::InteractiveMarkerInit::ConstSharedPtr InitConstPtr;
+  using UpdateConstPtr = visualization_msgs::msg::InteractiveMarkerUpdate::ConstSharedPtr;
+  using InitConstPtr = visualization_msgs::msg::InteractiveMarkerInit::ConstSharedPtr;
 
-  typedef std::function< void ( const UpdateConstPtr& ) > UpdateCallback;
-  typedef std::function< void ( const InitConstPtr& ) > InitCallback;
-  typedef std::function< void ( const std::string& ) > ResetCallback;
-  typedef std::function< void ( StatusT, const std::string&, const std::string& ) > StatusCallback;
+  using UpdateCallback = std::function< void ( const UpdateConstPtr& ) >;
+  using InitCallback = std::function< void ( const InitConstPtr& ) >;
+  using ResetCallback = std::function< void ( const std::string& ) >;
+  using StatusCallback = std::function< void ( StatusT, const std::string&, const std::string& ) >;
 
   /// @param tf           The tf transformer to use.
   /// @param target_frame tf frame to transform timestamped messages into.
   /// @param topic_ns     The topic namespace (will subscribe to topic_ns/update, topic_ns/init)
-  InteractiveMarkerClient( tf::Transformer& tf,
+  InteractiveMarkerClient( tf2_ros::Buffer& tf,
       const std::string& target_frame = "",
       const std::string &topic_ns = "" );
 
@@ -124,7 +128,7 @@ private:
   template<class MsgConstPtrT>
   void process( const MsgConstPtrT& msg );
 
-  ros::NodeHandle nh_;
+  std::shared_ptr<rclcpp::Node> node_;
 
   enum StateT
   {
@@ -137,8 +141,8 @@ private:
 
   std::string topic_ns_;
 
-  ros::Subscriber update_sub_;
-  ros::Subscriber init_sub_;
+  rclcpp::Subscription<visualization_msgs::msg::InteractiveMarkerUpdate>::SharedPtr update_sub_;
+  rclcpp::Subscription<visualization_msgs::msg::InteractiveMarkerInit>::SharedPtr init_sub_;
 
   // subscribe to the init channel
   void subscribeInit();
@@ -148,12 +152,12 @@ private:
 
   void statusCb( StatusT status, const std::string& server_id, const std::string& msg );
 
-  typedef std::shared_ptr<SingleClient> SingleClientPtr;
-  typedef std::unordered_map<std::string, SingleClientPtr> M_SingleClient;
+  using SingleClientPtr = std::shared_ptr<SingleClient>;
+  using M_SingleClient = std::unordered_map<std::string, SingleClientPtr>;
   M_SingleClient publisher_contexts_;
   std::mutex publisher_contexts_mutex_;
 
-  tf::Transformer& tf_;
+  tf2_ros::Buffer& tf_;
   std::string target_frame_;
 
 public:
@@ -190,10 +194,10 @@ public:
   };
 
   // handle init message
-  void processInit( const InitConstPtr& msg );
+  void processInit( InitConstPtr msg );
 
   // handle update message
-  void processUpdate( const UpdateConstPtr& msg );
+  void processUpdate( UpdateConstPtr msg );
 
 private:
   CbCollection callbacks_;

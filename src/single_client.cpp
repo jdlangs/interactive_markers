@@ -31,19 +31,21 @@
 
 #include "interactive_markers/detail/single_client.h"
 
-#define DBG_MSG( ... ) ROS_DEBUG( __VA_ARGS__ );
+#define DBG_MSG( ... ) RCLCPP_DEBUG( node_->get_logger(), __VA_ARGS__ );
 //#define DBG_MSG( ... ) printf("   "); printf( __VA_ARGS__ ); printf("\n");
 
 namespace interactive_markers
 {
 
 SingleClient::SingleClient(
+    std::shared_ptr<rclcpp::Node> node,
     const std::string& server_id,
-    tf::Transformer& tf,
+    tf2_ros::Buffer& tf,
     const std::string& target_frame,
     const InteractiveMarkerClient::CbCollection& callbacks
 )
-: state_(server_id,INIT)
+: node_(node)
+, state_(node_, server_id, INIT)
 , first_update_seq_num_(-1)
 , last_update_seq_num_(-1)
 , tf_(tf)
@@ -60,7 +62,7 @@ SingleClient::~SingleClient()
   callbacks_.resetCb( server_id_ );
 }
 
-void SingleClient::process(const visualization_msgs::InteractiveMarkerInit::ConstPtr& msg, bool enable_autocomplete_transparency)
+void SingleClient::process(visualization_msgs::msg::InteractiveMarkerInit::ConstSharedPtr msg, bool enable_autocomplete_transparency)
 {
   DBG_MSG( "%s: received init #%lu", server_id_.c_str(), msg->seq_num );
 
@@ -72,7 +74,7 @@ void SingleClient::process(const visualization_msgs::InteractiveMarkerInit::Cons
       DBG_MSG( "Init queue too large. Erasing init message with id %lu.", init_queue_.begin()->msg->seq_num );
       init_queue_.pop_back();
     }
-    init_queue_.push_front( InitMessageContext(tf_, target_frame_, msg, enable_autocomplete_transparency ) );
+    init_queue_.push_front( InitMessageContext(node_, tf_, target_frame_, msg, enable_autocomplete_transparency ) );
     callbacks_.statusCb( InteractiveMarkerClient::OK, server_id_, "Init message received." );
     break;
 
@@ -82,14 +84,14 @@ void SingleClient::process(const visualization_msgs::InteractiveMarkerInit::Cons
   }
 }
 
-void SingleClient::process(const visualization_msgs::InteractiveMarkerUpdate::ConstPtr& msg, bool enable_autocomplete_transparency)
+void SingleClient::process(visualization_msgs::msg::InteractiveMarkerUpdate::ConstSharedPtr msg, bool enable_autocomplete_transparency)
 {
   if ( first_update_seq_num_ == (uint64_t)-1 )
   {
     first_update_seq_num_ = msg->seq_num;
   }
 
-  last_update_time_ = ros::Time::now();
+  last_update_time_ = node_->now();
 
   if ( msg->type == msg->KEEP_ALIVE )
   {
@@ -125,11 +127,11 @@ void SingleClient::process(const visualization_msgs::InteractiveMarkerUpdate::Co
       DBG_MSG( "Update queue too large. Erasing update message with id %lu.", update_queue_.begin()->msg->seq_num );
       update_queue_.pop_back();
     }
-    update_queue_.push_front( UpdateMessageContext(tf_, target_frame_, msg, enable_autocomplete_transparency) );
+    update_queue_.push_front( UpdateMessageContext(node_, tf_, target_frame_, msg, enable_autocomplete_transparency) );
     break;
 
   case RECEIVING:
-    update_queue_.push_front( UpdateMessageContext(tf_, target_frame_, msg, enable_autocomplete_transparency) );
+    update_queue_.push_front( UpdateMessageContext(node_, tf_, target_frame_, msg, enable_autocomplete_transparency) );
     break;
 
   case TF_ERROR:
@@ -158,7 +160,7 @@ void SingleClient::update()
     break;
 
   case TF_ERROR:
-    if ( state_.getDuration().toSec() > 1.0 )
+    if ( state_.getDuration().seconds() > 1.0 )
     {
       callbacks_.statusCb( InteractiveMarkerClient::ERROR, server_id_, "1 second has passed. Re-initializing." );
       state_ = INIT;
@@ -169,7 +171,7 @@ void SingleClient::update()
 
 void SingleClient::checkKeepAlive()
 {
-  double time_since_upd = (ros::Time::now() - last_update_time_).toSec();
+  double time_since_upd = (node_->now() - last_update_time_).seconds();
   if ( time_since_upd > 2.0 )
   {
     std::ostringstream s;
